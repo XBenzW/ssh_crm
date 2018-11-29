@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+<struts>
+
+	<!-- # struts.objectFactory = spring   struts与spring整合需要配置的常量
+		 struts.objectFactory.spring.autoWire = name
+	-->
+
+    <constant name="struts.objectFactory" value="spring"></constant>
+    
+	<package name="crm" namespace="/" extends="struts-default">
+	    <global-exception-mappings>
+	      <exception-mapping result="error" exception="java.lang.RuntimeException"></exception-mapping>
+	    </global-exception-mappings>
+		
+		
+        <action name="AdminAction_*" class="adminAction"
+			method="{1}">
+			<result name="toHome">/index.htm</result>
+			<result name="error">/login.jsp</result>
+		</action>
+		
+		<!-- 工作人员模块 -->
+		<action name="StaffAction_*" class="staffAction"
+			method="{1}">
+			<result name="list">/jsp/staff/list.jsp</result>
+			<result name="edit">/jsp/staff/add.jsp</result>
+			<result name="delete" type="redirectAction">
+			  <param name="namespace">/</param>
+			  <param name="actionName">StaffAction_list</param>
+			</result>
+			<result name="toList" type="redirectAction">
+			  <param name="namespace">/</param>
+			  <param name="actionName">StaffAction_list</param>
+			</result>
+		</action>
+		
+		<!-- 客户模块 -->
+		<action name="CustomerAction_*" class="customerAction"
+			method="{1}">
+			<result name="list">/jsp/customer/list.jsp</result>
+			<result name="edit">/jsp/customer/add.jsp</result>
+			<result name="industryCount">/jsp/customer/industryTable.jsp</result>
+			<result name="sourceCount">/jsp/customer/sourceTable.jsp</result>
+			<result name="delete" type="redirectAction">
+               <param name="namespace" >/</param>			
+               <param name="actionName">CustomerAction_list</param>			
+ 			</result>
+			<result name="toList" type="redirectAction">
+               <param name="namespace" >/</param>			
+               <param name="actionName">CustomerAction_list</param>			
+ 			</result>
+		</action>
+		
+		<!-- 消费记录模块 -->
+		<action name="ShoppingAction_*" class="shoppingAction"
+			method="{1}">
+			<result name="list">/jsp/shopping/list.jsp</result>
+			<result name="edit">/jsp/shopping/add.jsp</result>
+			<result name="delete" type="redirectAction">
+               <param name="namespace" >/</param>			
+               <param name="actionName">ShoppingAction_list</param>			
+ 			</result>
+			<result name="toList" type="redirectAction">
+               <param name="namespace" >/</param>			
+               <param name="actionName">ShoppingAction_list</param>			
+ 			</result>
+ 			<result name="error">/jsp/shopping/list.jsp</result>
+		</action>
+		
+		<!-- 数据字典Action -->
+		<action name="BaseDictAction" class="baseDictAction" method="execute" ></action>
+		
+	</package>
+</struts>
