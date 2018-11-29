@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.2.xsd ">
+
+	
+	<!-- 配置核心事务 -->
+	<bean name="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+	  <property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<!-- 配置事务通知-->
+	<tx:advice transaction-manager="transactionManager" id="txadvice">
+	  <tx:attributes>
+	   <!-- 以方法为单位,指定方法应用什么事务属性
+			isolation:隔离级别
+			propagation:传播行为
+			read-only:是否只读
+		 -->
+		<tx:method name="save*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+		<tx:method name="persist*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+		<tx:method name="update*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+		<tx:method name="modify*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+		<tx:method name="delete*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+		<tx:method name="remove*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+		<tx:method name="get*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="true" />
+		<tx:method name="find*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="true" />
+		<tx:method name="transfer" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false" />
+	  </tx:attributes>
+	</tx:advice>
+	<!-- 将通知织入目标对象 -->
+	<aop:config>
+	  <aop:pointcut expression="execution(* cn.xben.serviceImpl.*ServiceImpl.*(..))" id="txpc"/>
+	  <aop:advisor advice-ref="txadvice" pointcut-ref="txpc"/>
+	</aop:config>
+	
+	<!-- 读取db.properties文件-->
+    <context:property-placeholder location="classpath:db.properties"/>
+    <!-- 注册数据库连接池 -->
+    <bean name="dataSorce" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+       <property name="driverClass" value="${jdbc.driverClass}"></property>
+       <property name="jdbcUrl" value="${jdbc.jdbcUrl}"></property>
+       <property name="user" value="${jdbc.user}"></property>
+       <property name="password" value="${jdbc.password}"></property>
+    </bean>
+    
+    
+	<!-- 注册Hibernate的sessionFaction 读取hibernate自己的配置 -->
+	<!-- <bean name="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean"> 
+		<property name="configLocation" value="classpath:hibernate.cfg.xml"></property> 
+		</bean> -->
+
+	<!-- 注册Hibernate的sessionFaction 读取spring的配置 -->
+	<bean name="sessionFactory"
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSorce"></property>
+		<property name="hibernateProperties">
+			<props>
+               <!-- <prop key="hibernate.connection.driver_class">com.mysql.jdbc.Driver</prop>
+               <prop key="hibernate.connection.url">jdbc:mysql:///crm2018</prop>
+               <prop key="hibernate.connection.username">root</prop>
+               <prop key="hibernate.connection.password">root</prop> -->
+               <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+               
+               <prop key="hibernate.show_sql">true</prop>
+               <prop key="hibernate.format_sql">true</prop>
+               <prop key="hibernate.hbm2ddl.auto">update</prop>
+			</props>
+		</property>
+		<property name="mappingDirectoryLocations" value="classpath:cn/xben/domain"></property>
+	</bean>
+	
+	<!-- 注册Struts的Action -->
+	<bean name="adminAction" class="cn.xben.web.action.AdminAction" scope="prototype">
+	  <property name="adminService" ref="adminService"></property>
+	</bean>
+	
+	<bean name="staffAction" class="cn.xben.web.action.StaffAction" scope="prototype">
+	  <property name="staffService" ref="staffService"></property>
+	</bean>
+	
+	<bean name="customerAction" class="cn.xben.web.action.CustomerAction" scope="prototype">
+	  <property name="customerService" ref="customerService"></property>
+	</bean>
+	
+	<bean name="baseDictAction" class="cn.xben.web.action.BaseDictAction" scope="prototype">
+	  <property name="baseDictService" ref="baseDictService"></property>
+	</bean>
+	
+	<bean name="shoppingAction" class="cn.xben.web.action.ShoppingAction" scope="prototype">
+	  <property name="shoppingService" ref="shoppingService"></property>
+	</bean>
+	
+	<!-- 注册service-->
+	<bean name="adminService" class="cn.xben.serviceImpl.AdminServiceImpl">
+	   <property name="adminDao" ref="adminDao"></property>
+	</bean>
+	
+	<bean name="staffService" class="cn.xben.serviceImpl.StaffServiceImpl">
+	   <property name="staffDao" ref="staffDao"></property>
+	</bean>
+	
+	<bean name="customerService" class="cn.xben.serviceImpl.CustomerServiceImpl">
+	   <property name="customerDao" ref="customerDao"></property>
+	</bean>
+	
+	<bean name="baseDictService" class="cn.xben.serviceImpl.BaseDictServiceImpl">
+	   <property name="baseDictDao" ref="baseDictDao"></property>
+	</bean>
+	
+	<bean name="shoppingService" class="cn.xben.serviceImpl.ShoppingServiceImpl">
+	   <property name="shoppingDao" ref="shoppingDao"></property>
+	</bean>
+	
+	<!-- 注册Dao -->
+	<bean name="adminDao" class="cn.xben.daoImpl.AdminDaoImpl">
+	  <property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+	<bean name="staffDao" class="cn.xben.daoImpl.StaffDaoImpl">
+	  <property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+	<bean name="customerDao" class="cn.xben.daoImpl.CustomerDaoImpl">
+	  <property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+	<bean name="baseDictDao" class="cn.xben.daoImpl.BaseDictDaoImpl">
+	  <property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+	<bean name="shoppingDao" class="cn.xben.daoImpl.ShoppingDaoImpl">
+	  <property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+</beans>
